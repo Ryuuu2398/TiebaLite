@@ -79,7 +79,8 @@ public class UserPostAdapter extends MultiBaseAdapter<UserPostBean.PostBean> {
             TextView contentTextView = viewHolder.getView(R.id.message_list_item_content);
             StringBuilder content = new StringBuilder();
             for (UserPostBean.PostContentBean postContentBean : postBean.getContent().get(0).getPostContent()) {
-                Log.i("UserPostAdapter", "convert: " + ExtensionsKt.toJson(postContentBean));
+                Log.i("UserPostAdapter", "username:" + postBean.getUserName() + " nickname:" + postBean.getNameShow());
+                Log.i("UserPostAdapter", "convert: " + ExtensionsKt.toJson(postContentBean) + postBean.getTitle().replace("回复：", "原贴：") + mContext.getString(R.string.text_message_list_item_source, postBean.getForumName()));
                 content.append(postContentBean.getText());
             }
             contentTextView.setText(content);

@@ -179,7 +179,7 @@ public class PersonalizedFeedAdapter extends MultiBaseAdapter<PersonalizedBean.T
             viewHolder.setText(R.id.forum_item_title, threadBean.getTitle());
         }
         TextView textView = viewHolder.getView(R.id.forum_item_content_text);
-        if (threadBean.getAbstractBeans().size() > 0 && "0".equals(threadBean.getAbstractBeans().get(0).getType())) {
+        if (threadBean.getAbstractBeans() != null && threadBean.getAbstractBeans().size() > 0 && "0".equals(threadBean.getAbstractBeans().get(0).getType())) {
             if (TextUtils.isEmpty(threadBean.getAbstractBeans().get(0).getText())) {
                 textView.setText(null);
                 textView.setVisibility(View.GONE);

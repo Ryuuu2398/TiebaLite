@@ -3,9 +3,11 @@ package com.huanchengfly.tieba.post.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import com.bumptech.glide.request.RequestOptions;
+import com.huanchengfly.tieba.post.ExtensionsKt;
 import com.huanchengfly.tieba.post.api.models.MessageListBean;
 import com.huanchengfly.tieba.post.R;
 import com.huanchengfly.tieba.post.fragments.BaseFragment;
@@ -90,6 +92,8 @@ public class MessageListAdapter extends CommonBaseAdapter<MessageListBean.Messag
         } else {
             textView.setText(StringUtil.getEmotionContent(EmotionUtil.EMOTION_ALL_TYPE, textView, mContext.getString(R.string.text_message_list_item_reply_my_thread, messageInfoBean.getTitle())));
         }
+        Log.i("MessageListAdapter",  "username:" + messageInfoBean.getReplyer().getName() + " nickname:" + messageInfoBean.getReplyer().getNameShow());
+        Log.i("MessageListAdapter", "convert: " + messageInfoBean.getContent() + " 原贴: " + messageInfoBean.getTitle() + mContext.getString(R.string.text_message_list_item_source, messageInfoBean.getForumName()));
         viewHolder.setText(R.id.message_list_item_source, mContext.getString(R.string.text_message_list_item_source, messageInfoBean.getForumName()));
     }
 

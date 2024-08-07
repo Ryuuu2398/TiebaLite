@@ -58,15 +58,18 @@ andResGuard {
 }
 
 android {
-    signingConfigs {
-        release {
-            keyAlias keystoreProperties['releaseKeyAlias']
-            keyPassword keystoreProperties['releaseKeyPassword']
-            storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['releaseKeyStore'])
-            storePassword keystoreProperties['releaseStorePassword']
-            v2SigningEnabled true
-        }
+    lintOptions {
+        abortOnError false
     }
+//    signingConfigs {
+//        release {
+//            keyAlias keystoreProperties['releaseKeyAlias']
+//            keyPassword keystoreProperties['releaseKeyPassword']
+//            storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['releaseKeyStore'])
+//            storePassword keystoreProperties['releaseStorePassword']
+//            v2SigningEnabled true
+//        }
+//    }
     compileSdkVersion 29
     defaultConfig {
         applicationId "com.huanchengfly.tieba.post"
@@ -77,18 +80,25 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         project.ext.set("archivesBaseName",  "${versionName}(${versionCode})".toString())
     }
+//    buildTypes {
+//        release {
+//            minifyEnabled true
+//            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            debuggable false
+//            jniDebuggable false
+//            signingConfig signingConfigs.release
+//            zipAlignEnabled true
+//            multiDexEnabled true
+//        }
+//    }
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable false
-            jniDebuggable false
-            signingConfig signingConfigs.release
-            zipAlignEnabled true
-            multiDexEnabled true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
         sourceCompatibility JavaVersion.VERSION_1_8

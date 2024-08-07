@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import retrofit2.Call;
@@ -150,19 +151,63 @@ public class RecyclerThreadAdapter extends MultiBaseAdapter<ThreadContentBean.Po
         return this;
     }
 
+//    public void setData(ThreadContentBean data) {
+//        threadBean = data.getThread();
+//        dataBean = data;
+//        setUser(data.getUserList());
+//        setPic(data.getPostList());
+//        List<ThreadContentBean.PostListItemBean> postListItemBeans = new ArrayList<>();
+//        for (ThreadContentBean.PostListItemBean postListItemBean : data.getPostList()) {
+//            if (!needBlock(postListItemBean)) {
+//                postListItemBeans.add(postListItemBean);
+//            }
+//        }
+//        setNewData(postListItemBeans);
+//    }
+
     public void setData(ThreadContentBean data) {
-        threadBean = data.getThread();
-        dataBean = data;
-        setUser(data.getUserList());
-        setPic(data.getPostList());
-        List<ThreadContentBean.PostListItemBean> postListItemBeans = new ArrayList<>();
-        for (ThreadContentBean.PostListItemBean postListItemBean : data.getPostList()) {
-            if (!needBlock(postListItemBean)) {
-                postListItemBeans.add(postListItemBean);
-            }
+        if (data == null) {
+            Log.e("RecyclerThreadAdapter", "data is null");
+            return;
         }
-        setNewData(postListItemBeans);
+
+        // 设置 threadBean
+        threadBean = data.getThread();
+        if (threadBean == null) {
+            Log.e("RecyclerThreadAdapter", "threadBean is null");
+        }
+
+        // 设置 dataBean
+        dataBean = data;
+
+        // 设置用户列表
+        List<ThreadContentBean.UserInfoBean> userList = data.getUserList();
+        if (userList != null) {
+            setUser(userList);
+        } else {
+            Log.e("RecyclerThreadAdapter", "userList is null");
+        }
+
+        // 设置图片
+        List<ThreadContentBean.PostListItemBean> postList = data.getPostList();
+        if (postList != null) {
+            setPic(postList);
+
+            // 过滤掉需要阻止的内容
+            List<ThreadContentBean.PostListItemBean> postListItemBeans = new ArrayList<>();
+            for (ThreadContentBean.PostListItemBean postListItemBean : postList) {
+                if (postListItemBean != null && !needBlock(postListItemBean)) {
+                    postListItemBeans.add(postListItemBean);
+                }
+            }
+
+            // 设置新的数据
+            setNewData(postListItemBeans);
+        } else {
+            Log.e("RecyclerThreadAdapter", "postList is null");
+        }
     }
+
 
     private void refreshForumView(ThreadContentBean.ForumInfoBean forumInfoBean, SuperTextView forumView, View dividerView) {
         if (forumView == null || dividerView == null || forumInfoBean == null) {
@@ -214,34 +259,85 @@ public class RecyclerThreadAdapter extends MultiBaseAdapter<ThreadContentBean.Po
         addPic(postListItemBeans);
     }
 
+//    private void addPic(List<ThreadContentBean.PostListItemBean> postListItemBeans) {
+//        if (postListItemBeans != null) {
+//            for (ThreadContentBean.PostListItemBean postListItemBean : postListItemBeans) {
+//                if (postListItemBean == null) continue; // 检查 postListItemBean 是否为 null
+//
+//                List<PhotoViewBean> photoViewBeans = new ArrayList<>();
+//                for (ThreadContentBean.ContentBean contentBean : postListItemBean.getContent()) {
+//                    if (contentBean == null) continue; // 检查 contentBean 是否为 null
+//
+//                    String url = ImageUtil.getUrl(mContext, true, contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc());
+//                    if (TextUtils.isEmpty(url)) {
+//                        continue;
+//                    }
+//                    if (contentBean.getType().equals("3")) {
+//                        photoViewBeans.add(new PhotoViewBean(url,
+//                                ImageUtil.getNonNullString(contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc()),
+//                                "1".equals(contentBean.isLongPic())));
+//                    }/* else if (contentBean.getType().equals("20")) {
+//                        photoViewBeans.add(new PhotoViewBean(contentBean.getSrc(), contentBean.getSrc(), false));
+//                    }
+//                   */
+//                }
+//                photoViewBeansMap.put(Integer.valueOf(postListItemBean.getFloor()), photoViewBeans);
+//            }
+//        }
+//    }
+
     private void addPic(List<ThreadContentBean.PostListItemBean> postListItemBeans) {
         if (postListItemBeans != null) {
             for (ThreadContentBean.PostListItemBean postListItemBean : postListItemBeans) {
+                if (postListItemBean == null) continue; // 检查 postListItemBean 是否为 null
+
                 List<PhotoViewBean> photoViewBeans = new ArrayList<>();
-                for (ThreadContentBean.ContentBean contentBean : postListItemBean.getContent()) {
-                    String url = ImageUtil.getUrl(mContext, true, contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc());
-                    if (TextUtils.isEmpty(url)) {
-                        continue;
-                    }
-                    if (contentBean.getType().equals("3")) {
-                        photoViewBeans.add(new PhotoViewBean(url,
-                                ImageUtil.getNonNullString(contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc()),
-                                "1".equals(contentBean.isLongPic())));
-                    }/* else if (contentBean.getType().equals("20")) {
+
+                List<ThreadContentBean.ContentBean> contentBeans = postListItemBean.getContent();
+                if (contentBeans != null) { // 确保 contentBeans 不为 null
+                    for (ThreadContentBean.ContentBean contentBean : contentBeans) {
+
+                        String url = ImageUtil.getUrl(mContext, true, contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc());
+                        if (TextUtils.isEmpty(url)) {
+                            continue;
+                        }
+                        if ("3".equals(contentBean.getType())) {
+                            photoViewBeans.add(new PhotoViewBean(url,
+                                    ImageUtil.getNonNullString(contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc()),
+                                    "1".equals(contentBean.isLongPic())));
+                        }
+                        // 如果需要处理其他类型的 contentBean，可以解开注释以下部分
+                    /*
+                    else if ("20".equals(contentBean.getType())) {
                         photoViewBeans.add(new PhotoViewBean(contentBean.getSrc(), contentBean.getSrc(), false));
                     }
-                   */
+                    */
+                    }
+                }else{
+                    Log.e("RecyclerThreadAdapter", "contentBeans is null");
                 }
-                photoViewBeansMap.put(Integer.valueOf(postListItemBean.getFloor()), photoViewBeans);
+
+                // 确保 floor 非空，并且 photoViewBeans 不为空
+                if (postListItemBean.getFloor() != null && !photoViewBeans.isEmpty()) {
+                    try {
+                        photoViewBeansMap.put(Integer.valueOf(postListItemBean.getFloor()), photoViewBeans);
+                    } catch (NumberFormatException e) {
+                        // 处理 floor 转换为 Integer 时的异常
+                        Log.e("RecyclerThreadAdapter", "Invalid floor number: " + postListItemBean.getFloor(), e);
+                    }
+                }
             }
+        }else {
+            Log.e("RecyclerThreadAdapter", "postListItemBeans is null");
         }
     }
+
 
     private List<PhotoViewBean> getPhotoViewBeans() {
         List<PhotoViewBean> photoViewBeans = new ArrayList<>();
         for (int key : photoViewBeansMap.keySet()) {
             if (photoViewBeansMap.get(key) != null)
-                photoViewBeans.addAll(photoViewBeansMap.get(key));
+                photoViewBeans.addAll(Objects.requireNonNull(photoViewBeansMap.get(key)));
         }
         return photoViewBeans;
     }
@@ -751,145 +847,211 @@ public class RecyclerThreadAdapter extends MultiBaseAdapter<ThreadContentBean.Po
         return layoutParams;
     }
 
+//    private boolean needBlock(ThreadContentBean.PostListItemBean postListItemBean) {
+//        if (blockCacheMap != null && blockCacheMap.get(postListItemBean.getFloor()) != null) {
+//            return blockCacheMap.get(postListItemBean.getFloor());
+//        }
+//        if (postListItemBean.getAuthor() != null && BlockUtil.needBlock(postListItemBean.getAuthor())) {
+//            blockCacheMap.put(postListItemBean.getFloor(), true);
+//            return true;
+//        }
+//        ThreadContentBean.UserInfoBean userInfoBean = userInfoBeanMap.get(postListItemBean.getAuthorId());
+//        if (userInfoBean != null && BlockUtil.needBlock(userInfoBean.getName(), userInfoBean.getId())) {
+//            blockCacheMap.put(postListItemBean.getFloor(), true);
+//            return true;
+//        }
+//        for (ThreadContentBean.ContentBean contentBean : postListItemBean.getContent()) {
+//            switch (contentBean.getType()) {
+//                case "0":
+//                    if (BlockUtil.needBlock(contentBean.getText())) {
+//                        blockCacheMap.put(postListItemBean.getFloor(), true);
+//                        return true;
+//                    }
+//                    break;
+//            }
+//        }
+//        blockCacheMap.put(postListItemBean.getFloor(), false);
+//        return false;
+//    }
+
     private boolean needBlock(ThreadContentBean.PostListItemBean postListItemBean) {
+        // 检查 postListItemBean 是否为 null
+        if (postListItemBean == null) {
+            Log.e("RecyclerThreadAdapter", "postListItemBean is null");
+            return false;
+        }
+
+        // 检查 blockCacheMap 是否为 null
         if (blockCacheMap != null && blockCacheMap.get(postListItemBean.getFloor()) != null) {
             return blockCacheMap.get(postListItemBean.getFloor());
         }
+
+        // 检查 postListItemBean.getAuthor() 是否为 null
         if (postListItemBean.getAuthor() != null && BlockUtil.needBlock(postListItemBean.getAuthor())) {
-            blockCacheMap.put(postListItemBean.getFloor(), true);
+            if (blockCacheMap != null) {
+                blockCacheMap.put(postListItemBean.getFloor(), true);
+            }
             return true;
         }
-        ThreadContentBean.UserInfoBean userInfoBean = userInfoBeanMap.get(postListItemBean.getAuthorId());
+
+        // 检查 userInfoBeanMap 是否为 null
+        ThreadContentBean.UserInfoBean userInfoBean = userInfoBeanMap != null ? userInfoBeanMap.get(postListItemBean.getAuthorId()) : null;
         if (userInfoBean != null && BlockUtil.needBlock(userInfoBean.getName(), userInfoBean.getId())) {
-            blockCacheMap.put(postListItemBean.getFloor(), true);
+            if (blockCacheMap != null) {
+                blockCacheMap.put(postListItemBean.getFloor(), true);
+            }
             return true;
         }
-        for (ThreadContentBean.ContentBean contentBean : postListItemBean.getContent()) {
-            switch (contentBean.getType()) {
-                case "0":
-                    if (BlockUtil.needBlock(contentBean.getText())) {
-                        blockCacheMap.put(postListItemBean.getFloor(), true);
-                        return true;
+
+        // 检查 postListItemBean.getContent() 是否为 null
+        List<ThreadContentBean.ContentBean> contentBeans = postListItemBean.getContent();
+        if (contentBeans != null) {
+            for (ThreadContentBean.ContentBean contentBean : contentBeans) {
+                if (contentBean != null) {
+                    switch (contentBean.getType()) {
+                        case "0":
+                            if (BlockUtil.needBlock(contentBean.getText())) {
+                                if (blockCacheMap != null) {
+                                    blockCacheMap.put(postListItemBean.getFloor(), true);
+                                }
+                                return true;
+                            }
+                            break;
                     }
-                    break;
+                }
             }
         }
-        blockCacheMap.put(postListItemBean.getFloor(), false);
+
+        // 更新 blockCacheMap 和返回值
+        if (blockCacheMap != null) {
+            blockCacheMap.put(postListItemBean.getFloor(), false);
+        }
         return false;
     }
 
+
     private List<View> getContentViews(ThreadContentBean.PostListItemBean postListItemBean, int position) {
         List<View> views = new ArrayList<>();
+        if(postListItemBean.getContent() == null){
+            ThreadContentBean.ContentBean contentBean = new ThreadContentBean.ContentBean();
+            TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
+            textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+            setText(textView, contentBean.getText());
+            views.add(textView);
+            return views;
+        }
         for (ThreadContentBean.ContentBean contentBean : postListItemBean.getContent()) {
-            switch (contentBean.getType()) {
-                case "0":
-                case "9": {
-                    if (appendTextToLastTextView(views, contentBean.getText())) {
-                        TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
-                        textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                        setText(textView, contentBean.getText());
-                        views.add(textView);
-                    }
-                }
-                break;
-                case "1":
-                    if (appendLinkToLastTextView(views, contentBean.getText(), contentBean.getLink())) {
-                        TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
-                        textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                        setText(textView, getLinkContent(contentBean.getText(), contentBean.getLink()));
-                        views.add(textView);
-                    }
-                    break;
-                case "2":
-                    String emojiText = "#(" + contentBean.getC() + ")";
-                    if (appendTextToLastTextView(views, emojiText)) {
-                        TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
-                        textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                        setText(textView, emojiText);
-                        views.add(textView);
-                    }
-                    break;
-                case "3":
-                    String url = ImageUtil.getUrl(mContext, true, contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc());
-                    if (TextUtils.isEmpty(url)) {
-                        break;
-                    }
-                    MyImageView imageView = new MyImageView(mContext);
-                    imageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                    imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    ImageUtil.load(imageView, ImageUtil.LOAD_TYPE_SMALL_PIC, url);
-                    List<PhotoViewBean> photoViewBeans = getPhotoViewBeans();
-                    for (PhotoViewBean photoViewBean : photoViewBeans) {
-                        if (TextUtils.equals(photoViewBean.getOriginUrl(), contentBean.getOriginSrc())) {
-                            ImageUtil.initImageView(imageView,
-                                    photoViewBeans,
-                                    photoViewBeans.indexOf(photoViewBean),
-                                    dataBean.getForum().getName(),
-                                    dataBean.getForum().getId(),
-                                    dataBean.getThread().getId(),
-                                    isSeeLz(),
-                                    OBJ_TYPE_THREAD_PAGE);
-                            break;
-                        }
-                    }
-                    views.add(imageView);
-                    break;
-                case "4":
-                    if (appendUserToLastTextView(views, contentBean.getText(), contentBean.getUid())) {
-                        TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
-                        textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                        setText(textView, getUserContent(contentBean.getText(), contentBean.getUid()));
-                        views.add(textView);
-                    }
-                    break;
-                case "5":
-                    if (contentBean.getSrc() != null && contentBean.getWidth() != null && contentBean.getHeight() != null) {
-                        if (contentBean.getLink() != null) {
-                            VideoPlayerStandard videoPlayerStandard = new VideoPlayerStandard(mContext);
-                            videoPlayerStandard.setUp(contentBean.getLink(), "");
-                            videoPlayerStandard.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                            videoPlayerStandard.setId(R.id.video_player);
-                            ImageUtil.load(videoPlayerStandard.posterImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc(), true);
-                            views.add(videoPlayerStandard);
-                        } else {
-                            MyImageView videoImageView = new MyImageView(mContext);
-                            videoImageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                            videoImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            ImageUtil.load(videoImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc(), true);
-                            videoImageView.setOnClickListener(view -> {
-                                navigationHelper.navigationByData(NavigationHelper.ACTION_URL, contentBean.getText());
-                            });
-                            views.add(videoImageView);
-                        }
-                    } else {
-                        if (appendLinkToLastTextView(views, "[视频] " + contentBean.getText(), contentBean.getText())) {
+            if(contentBean != null) {
+                switch (contentBean.getType()) {
+                    case "0":
+                    case "9": {
+                        if (appendTextToLastTextView(views, contentBean.getText())) {
                             TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
-                            textView.setLayoutParams(defaultLayoutParams);
-                            setText(textView, getLinkContent("[视频] " + contentBean.getText(), contentBean.getText()));
+                            textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                            setText(textView, contentBean.getText());
                             views.add(textView);
                         }
                     }
                     break;
-                case "10":
-                    String voiceUrl = "http://c.tieba.baidu.com/c/p/voice?voice_md5=" + contentBean.getVoiceMD5() + "&play_from=pb_voice_play";
-                    Log.i(TAG, "getContentViews: " + contentBean.getDuringTime());
-                    VoicePlayerView voicePlayerView = new VoicePlayerView(mContext);
-                    voicePlayerView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    //voicePlayerView.setMini(false);
-                    voicePlayerView.setDuration(Integer.valueOf(contentBean.getDuringTime()));
-                    voicePlayerView.setUrl(voiceUrl);
-                    views.add(voicePlayerView);
-                    break;
-                case "20":
-                    MyImageView memeImageView = new MyImageView(mContext);
-                    memeImageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
-                    memeImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                    ImageUtil.load(memeImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc());
-                    ImageUtil.initImageView(memeImageView, new PhotoViewBean(contentBean.getSrc(), contentBean.getSrc(), false));
-                    views.add(memeImageView);
-                    break;
-                default:
-                    break;
+                    case "1":
+                        if (appendLinkToLastTextView(views, contentBean.getText(), contentBean.getLink())) {
+                            TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
+                            textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                            setText(textView, getLinkContent(contentBean.getText(), contentBean.getLink()));
+                            views.add(textView);
+                        }
+                        break;
+                    case "2":
+                        String emojiText = "#(" + contentBean.getC() + ")";
+                        if (appendTextToLastTextView(views, emojiText)) {
+                            TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
+                            textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                            setText(textView, emojiText);
+                            views.add(textView);
+                        }
+                        break;
+                    case "3":
+                        String url = ImageUtil.getUrl(mContext, true, contentBean.getOriginSrc(), contentBean.getBigCdnSrc(), contentBean.getCdnSrcActive(), contentBean.getCdnSrc());
+                        if (TextUtils.isEmpty(url)) {
+                            break;
+                        }
+                        MyImageView imageView = new MyImageView(mContext);
+                        imageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        ImageUtil.load(imageView, ImageUtil.LOAD_TYPE_SMALL_PIC, url);
+                        List<PhotoViewBean> photoViewBeans = getPhotoViewBeans();
+                        for (PhotoViewBean photoViewBean : photoViewBeans) {
+                            if (TextUtils.equals(photoViewBean.getOriginUrl(), contentBean.getOriginSrc())) {
+                                ImageUtil.initImageView(imageView,
+                                        photoViewBeans,
+                                        photoViewBeans.indexOf(photoViewBean),
+                                        dataBean.getForum().getName(),
+                                        dataBean.getForum().getId(),
+                                        dataBean.getThread().getId(),
+                                        isSeeLz(),
+                                        OBJ_TYPE_THREAD_PAGE);
+                                break;
+                            }
+                        }
+                        views.add(imageView);
+                        break;
+                    case "4":
+                        if (appendUserToLastTextView(views, contentBean.getText(), contentBean.getUid())) {
+                            TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
+                            textView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                            setText(textView, getUserContent(contentBean.getText(), contentBean.getUid()));
+                            views.add(textView);
+                        }
+                        break;
+                    case "5":
+                        if (contentBean.getSrc() != null && contentBean.getWidth() != null && contentBean.getHeight() != null) {
+                            if (contentBean.getLink() != null) {
+                                VideoPlayerStandard videoPlayerStandard = new VideoPlayerStandard(mContext);
+                                videoPlayerStandard.setUp(contentBean.getLink(), "");
+                                videoPlayerStandard.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                                videoPlayerStandard.setId(R.id.video_player);
+                                ImageUtil.load(videoPlayerStandard.posterImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc(), true);
+                                views.add(videoPlayerStandard);
+                            } else {
+                                MyImageView videoImageView = new MyImageView(mContext);
+                                videoImageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                                videoImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                                ImageUtil.load(videoImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc(), true);
+                                videoImageView.setOnClickListener(view -> {
+                                    navigationHelper.navigationByData(NavigationHelper.ACTION_URL, contentBean.getText());
+                                });
+                                views.add(videoImageView);
+                            }
+                        } else {
+                            if (appendLinkToLastTextView(views, "[视频] " + contentBean.getText(), contentBean.getText())) {
+                                TextView textView = createTextView(TEXT_VIEW_TYPE_CONTENT);
+                                textView.setLayoutParams(defaultLayoutParams);
+                                setText(textView, getLinkContent("[视频] " + contentBean.getText(), contentBean.getText()));
+                                views.add(textView);
+                            }
+                        }
+                        break;
+                    case "10":
+                        String voiceUrl = "http://c.tieba.baidu.com/c/p/voice?voice_md5=" + contentBean.getVoiceMD5() + "&play_from=pb_voice_play";
+                        Log.i(TAG, "getContentViews: " + contentBean.getDuringTime());
+                        VoicePlayerView voicePlayerView = new VoicePlayerView(mContext);
+                        voicePlayerView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                        //voicePlayerView.setMini(false);
+                        voicePlayerView.setDuration(Integer.valueOf(contentBean.getDuringTime()));
+                        voicePlayerView.setUrl(voiceUrl);
+                        views.add(voicePlayerView);
+                        break;
+                    case "20":
+                        MyImageView memeImageView = new MyImageView(mContext);
+                        memeImageView.setLayoutParams(getLayoutParams(contentBean, postListItemBean.getFloor()));
+                        memeImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                        ImageUtil.load(memeImageView, ImageUtil.LOAD_TYPE_SMALL_PIC, contentBean.getSrc());
+                        ImageUtil.initImageView(memeImageView, new PhotoViewBean(contentBean.getSrc(), contentBean.getSrc(), false));
+                        views.add(memeImageView);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         return views;

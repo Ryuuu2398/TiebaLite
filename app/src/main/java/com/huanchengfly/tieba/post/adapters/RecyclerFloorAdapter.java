@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -98,11 +99,35 @@ public class RecyclerFloorAdapter extends CommonBaseAdapter<SubFloorListBean.Pos
                 .skipMemoryCache(true);
     }
 
+//    public void setData(SubFloorListBean data) {
+//        dataBean = data;
+//
+//        if (data.getSubPostList() == null) {
+//            data.setSubPostList(new ArrayList<SubFloorListBean.PostInfo>());
+//        }
+//
+//        data.getSubPostList().add(0, data.getPost());
+//        setNewData(data.getSubPostList());
+//    }
+
     public void setData(SubFloorListBean data) {
         dataBean = data;
-        data.getSubPostList().add(0, data.getPost());
-        setNewData(data.getSubPostList());
+
+        // 创建一个临时的可变列表来存储子帖子
+        List<SubFloorListBean.PostInfo> subPostList = new ArrayList<>();
+        if (data.getSubPostList() != null) {
+            subPostList.addAll(data.getSubPostList());
+        }
+
+        // 添加主帖到列表的开头
+        if (data.getPost() != null) {
+            subPostList.add(0, data.getPost());
+        }
+
+        // 设置新的数据
+        setNewData(subPostList);
     }
+
 
     public void addData(SubFloorListBean data) {
         dataBean = data;
